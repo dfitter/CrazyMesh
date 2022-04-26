@@ -88,7 +88,7 @@ class frame_mesh():
                 Fy = F*np.sin(repel_ang)
                 Fc = np.array((Fx, Fy))
 
-            n.acc = Fk + Fc + Fd
+            n.acc += Fk + Fc + Fd
 
     def neighbour_condition(self):
         min_sep = 1.1
@@ -133,6 +133,8 @@ class Anim():
         self.max_ylim = 6
         self.min_ylim = -1
 
+        self.obsticles = np.array(((0.7, 5.5), (3.2, 4.5)))
+
     def animate(self, i):
         min_rad = 0.2
         max_rad = 1
@@ -144,21 +146,39 @@ class Anim():
         self.ax.set_ylim(self.min_ylim, self.max_ylim)
 
         # self.meshy.warp_mesh(self.obs_pos)
-        self.meshy.mesh_acc(self.obs_pos)
+        for i, n in enumerate(self.meshy.nodes):
+            n.acc = 0
+
+        for obs in self.obsticles:
+            self.meshy.mesh_acc(obs)
+        # self.meshy.mesh_acc(self.obs_pos)
+
         # self.meshy.neighbour_condition()
         self.meshy.mesh_update()
         plt.style.use("ggplot")   
         self.meshy.plot_mesh(self.ax)
-        self.ax.scatter(self.obs_pos[0], self.obs_pos[1], c='m', s=20, marker='o')
-        self.ax.plot(min_rad*np.cos(theta)+self.obs_pos[0], min_rad*np.sin(theta)+self.obs_pos[1], c='r')
-        self.ax.plot(max_rad*np.cos(theta)+self.obs_pos[0], max_rad*np.sin(theta)+self.obs_pos[1], c='g')
-        self.obs_pos += np.array((0, -0.05))
+
+        for obs in self.obsticles:
+            self.ax.scatter(obs[0], obs[1], c='m', s=20, marker='o')
+            self.ax.plot(min_rad*np.cos(theta)+obs[0], min_rad*np.sin(theta)+obs[1], c='r')
+            self.ax.plot(max_rad*np.cos(theta)+obs[0], max_rad*np.sin(theta)+obs[1], c='g')
+        # self.ax.scatter(self.obs_pos[0], self.obs_pos[1], c='m', s=20, marker='o')
+        # self.ax.plot(min_rad*np.cos(theta)+self.obs_pos[0], min_rad*np.sin(theta)+self.obs_pos[1], c='r')
+        # self.ax.plot(max_rad*np.cos(theta)+self.obs_pos[0], max_rad*np.sin(theta)+self.obs_pos[1], c='g')
+
+        # for i, obs in enumerate(self.obsticles):
+        #     self.obsticles[i, :] += np.array((0, -0.05))
+        self.obsticles[0, :] += np.array((0, -0.025))
+        self.obsticles[1, :] += np.array((-0.025, -0.025))
+
+        # self.obs_pos += np.array((0, -0.05))
+
         # if self.obs_pos[1] < -1:
         #     self.ani.event_source.stop()
 
 def main():
     an = Anim()
-    # an.ani.save('video.mp4', writer='ffmpeg')
+    an.ani.save('video.mp4', writer='ffmpeg', fps=60)
     plt.show()
     
 
